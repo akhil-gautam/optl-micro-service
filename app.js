@@ -6,7 +6,7 @@ require('dotenv').config();
 
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -25,7 +25,6 @@ const databases = new sdk.Databases(client);
 const databaseID = process.env.DATABASE_ID;
 const collectionID = process.env.COLLECTION_ID;
 
-
 app.post('/traces', (req, res) => {
   const body = req.body;
 
@@ -34,12 +33,9 @@ app.post('/traces', (req, res) => {
 
   spans.forEach((span) => {
     promises.push(
-      databases.createDocument(
-        databaseID,
-        collectionID,
-        sdk.ID.unique(),
-        { ...span }
-      )
+      databases.createDocument(databaseID, collectionID, sdk.ID.unique(), {
+        ...span,
+      })
     );
   });
 
@@ -71,9 +67,7 @@ app.get('/requests', (req, res) => {
 
 app.get('/errors', (req, res) => {
   databases
-    .listDocuments(databaseID, collectionID, [
-      sdk.Query.equal('error_code', 1),
-    ])
+    .listDocuments(databaseID, collectionID, [sdk.Query.equal('error_code', 1)])
     .then(
       function (response) {
         res.send(response);
@@ -87,9 +81,7 @@ app.get('/errors', (req, res) => {
 app.get('/requests/:id', (req, res) => {
   const id = req.params.id;
   databases
-    .listDocuments(databaseID, collectionID, [
-      sdk.Query.equal('spanId', id),
-    ])
+    .listDocuments(databaseID, collectionID, [sdk.Query.equal('spanId', id)])
     .then(
       function (response) {
         res.send(response);
@@ -102,9 +94,7 @@ app.get('/requests/:id', (req, res) => {
 
 app.get('/traces', (req, res) => {
   databases
-    .listDocuments(databaseID, collectionID, [
-      sdk.Query.limit(100),
-    ])
+    .listDocuments(databaseID, collectionID, [sdk.Query.limit(100)])
     .then(
       function (response) {
         res.send(response);
@@ -118,9 +108,7 @@ app.get('/traces', (req, res) => {
 app.get('/traces/:id', (req, res) => {
   const id = req.params.id;
   databases
-    .listDocuments(databaseID, collectionID, [
-      sdk.Query.equal('traceId', id),
-    ])
+    .listDocuments(databaseID, collectionID, [sdk.Query.equal('traceId', id)])
     .then(
       function (response) {
         res.send(response);
@@ -131,6 +119,6 @@ app.get('/traces/:id', (req, res) => {
     );
 });
 
-app.listen(port, () => {
+app.listen(port, process.env.HOST, () => {
   console.log(`Server is listening on port ${port}`);
 });
