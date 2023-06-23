@@ -1,8 +1,13 @@
 function processSpans(formData) {
   const spans = [];
+  let metricData;
   for (const spanData of formData.resourceSpans) {
     for (const span of spanData.scopeSpans) {
       const { scope } = span;
+      if (scope && scope.name === 'metricTracer') {
+        metricData = span.spans[0];
+        continue;
+      }
       for (const s of span.spans) {
         const error_code = scope && scope.name === 'errorTracer' ? 1 : 0;
         const error =
@@ -25,7 +30,7 @@ function processSpans(formData) {
       }
     }
   }
-  return spans;
+  return [spans, metricData];
 }
 
 module.exports = {
